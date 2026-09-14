@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import api from "../services/api"; // Update this path to where your configured axios file is located
 
 export default function Login() {
   const navigate = useNavigate();
@@ -23,32 +24,17 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "https://mern-stack-auth-final-prod-level.onrender.com/api/v1/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-           credentials: "include",
-          body: JSON.stringify(formData),
-        }
-      );
+      // Using your configured axios instance (baseURL and withCredentials are built-in)
+      const response = await api.post("/auth/login", formData);
 
-      const data = await response.json();
+      alert("Login Successful!");
+      console.log(response.data);
 
-      if (response.ok) {
-        alert("Login Successful!");
-        console.log(data);
-
-        // Navigate after successful login
-        navigate("/");
-      } else {
-        alert(data.message || "Login Failed");
-      }
+      navigate("/");
     } catch (error) {
       console.error(error);
-      alert("Server Error");
+      const errorMessage = error.response?.data?.message || "Login Failed";
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }

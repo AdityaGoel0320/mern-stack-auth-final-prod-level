@@ -147,10 +147,8 @@ const loginController = async (req, res) => {
     ========================== */
 
     const accessToken = generateAccessToken(user);
-    console.log("accessToken :- " , accessToken)
 
     const refreshToken = generateRefreshToken(user);
-    console.log("refreshToken :- " , refreshToken);
     /* ==========================
        HASH REFRESH TOKEN
        Store ONLY the hash in DB
@@ -159,7 +157,6 @@ const loginController = async (req, res) => {
     const refreshTokenHash =
       hashRefreshToken(refreshToken);
 
-    console.log("refreshTokenHash :- " , refreshTokenHash);
 
     user.refreshTokenHash = refreshTokenHash;
 

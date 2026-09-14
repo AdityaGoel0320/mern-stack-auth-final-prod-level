@@ -10,6 +10,7 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 import HomePage from "../pages/HomePage";
 import ProtectedLayout from "./layouts/ProtectedLayout";
 import ProfilePage from "../pages/ProfilePage";
+import AboutUsPage from "../pages/AboutUsPage";
 
 const router = createBrowserRouter([
   {
@@ -47,6 +48,11 @@ const router = createBrowserRouter([
                 path: "profile",
                 element: <ProfilePage />,
               },
+              {
+                path: "about-us",
+                element: <AboutUsPage />,
+              }
+              
             ],
           },
         ],

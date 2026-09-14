@@ -26,6 +26,13 @@ export default function Navbar() {
           >
             Profile
           </Link>
+
+              <Link
+            to="/about-us"
+            className="hover:text-blue-600 transition-colors"
+          >
+            About Us
+          </Link>
         </nav>
 
       </div>

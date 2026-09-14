@@ -1,19 +1,26 @@
 import axios from "axios";
 
-// const api = axios.create({
-//   baseURL: "http://localhost:9000/api/v1",
-//   withCredentials: true, // Crucial for sending/receiving cookies
-// });
 const api = axios.create({
-  baseURL: "https://mern-stack-auth-final-prod-level.onrender.com/api/v1",
+  baseURL: "http://localhost:9000/api/v1",
   withCredentials: true, // Crucial for sending/receiving cookies
 });
 
-// Flag to prevent multiple simultaneous refresh requests
+// Flags and queue for handling simultaneous requests
 let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 api.interceptors.response.use(
-  // If the response is successful, just return it
   (response) => response,
 
   async (error) => {
@@ -22,21 +29,18 @@ api.interceptors.response.use(
     const code = error.response?.data?.code;
 
     // ==========================================
-    // CASE 1: Not a Token Expiry Error
+    // CASE 1: Check for Retryable Auth Errors
     // ==========================================
-    // If the error is NOT a 401 TOKEN_EXPIRED, we don't want to intercept it here.
-    // This includes normal 400 Bad Requests, 500 Server Errors, or 
-    // 401 NO_ACCESS_TOKEN / INVALID_TOKEN (which mean the user is fully logged out).
-    if (!(status === 401 && code === "TOKEN_EXPIRED")) {
-      // Optional: You could add logic here to redirect to /login if code === "NO_ACCESS_TOKEN"
+    // Intercepts both TOKEN_EXPIRED and NO_ACCESS_TOKEN
+    const isAuthError = status === 401 && (code === "TOKEN_EXPIRED" || code === "NO_ACCESS_TOKEN");
+
+    if (!isAuthError) {
       return Promise.reject(error);
     }
 
     // ==========================================
     // CASE 2: Infinite Loop Prevention
     // ==========================================
-    // If we already retried this exact request, or if the request that failed 
-    // WAS the refresh token request itself, abort to prevent an endless loop.
     if (
       originalRequest._retry ||
       originalRequest.url?.includes("/auth/refresh-token")
@@ -46,58 +50,52 @@ api.interceptors.response.use(
     }
 
     // ==========================================
-    // CASE 3: Refresh Already in Progress
+    // CASE 3: Refresh Already in Progress (Queue Request)
     // ==========================================
-    // If another request already triggered a refresh, don't start a second one.
     if (isRefreshing) {
-      console.warn(`[Axios] Refresh already in progress. Dropping request: ${originalRequest.url}`);
-      return Promise.reject(error); 
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      })
+        .then(() => {
+          return api(originalRequest);
+        })
+        .catch((err) => {
+          return Promise.reject(err);
+        });
     }
 
     // ==========================================
     // CASE 4: Attempting to Refresh
     // ==========================================
-    originalRequest._retry = true; // Mark this request so we don't retry it twice
-    isRefreshing = true;           // Lock the refresh process
+    originalRequest._retry = true;
+    isRefreshing = true;
 
     try {
-      console.info("[Axios] 🔄 Access token expired. Attempting to refresh...");
+      console.info("[Axios] 🔄 Attempting to refresh access token...");
 
-      // Call the backend to refresh the HTTP-only cookie
       await api.post("/auth/refresh-token");
 
-      console.info(`[Axios] ✅ Token refreshed successfully. Retrying: ${originalRequest.url}`);
+      console.info(`[Axios] ✅ Token refreshed successfully. Processing queue and retrying: ${originalRequest.url}`);
 
-      // Retry the original request that failed
+      // Resume all queued requests
+      processQueue(null);
+
       return api(originalRequest);
       
     } catch (refreshError) {
       // ==========================================
-      // CASE 5: Refresh Token Failed
+      // CASE 5: Refresh Token Failed / Dead Session
       // ==========================================
-      // The refresh token itself is either expired, missing, or invalid.
-      // The user's session is officially dead.
+      console.error("[Axios] ❌ Refresh failed. Session completely dead.");
       
-      const refreshCode = refreshError.response?.data?.code;
-      console.error(`[Axios] ❌ Refresh failed with code: ${refreshCode || 'UNKNOWN'}`);
+      // Reject everything currently in the queue
+      processQueue(refreshError, null);
 
-      if (
-        refreshCode === "REFRESH_TOKEN_EXPIRED" ||
-        refreshCode === "INVALID_REFRESH_TOKEN" ||
-        refreshCode === "REFRESH_TOKEN_MISSING"
-      ) {
-        console.warn("[Axios] 🚪 Session completely dead. Redirecting to login.");
-        
-        // Clear any frontend state here if using Redux/Zustand/Context before redirecting
-        // e.g., store.dispatch(logoutAction())
-        
-        window.location.replace("/login");
-      }
+      window.location.replace("/login");
 
       return Promise.reject(refreshError);
       
     } finally {
-      // Always release the lock, whether the refresh succeeded or failed
       isRefreshing = false;
     }
   }

@@ -9,7 +9,6 @@ const userAuthenticatedMiddlware = (req, res, next) => {
     // This happens if the user just logged out, hasn't logged in yet, 
     // or the browser automatically deleted the expired cookie.
     if (!accessToken) {
-      console.warn(`[Auth] Missing token on ${req.originalUrl} from IP: ${req.ip}`);
       return res.status(401).json({
         success: false,
         code: "NO_ACCESS_TOKEN",
@@ -31,8 +30,7 @@ const userAuthenticatedMiddlware = (req, res, next) => {
     // This happens due to client/server clock skew, API clients like Postman, 
     // or slight browser delays in deleting the expired cookie.
     if (error instanceof jwt.TokenExpiredError) {
-      console.warn(`[Auth] Expired token used on ${req.originalUrl} from IP: ${req.ip}`);
-      return res.status(401).json({
+        return res.status(401).json({
         success: false,
         code: "TOKEN_EXPIRED",
         message: "Access token expired.",
@@ -52,7 +50,6 @@ const userAuthenticatedMiddlware = (req, res, next) => {
     }
 
     // FALLBACK: Catch any other unexpected server errors
-    console.error(`[Auth Error] Unexpected error on ${req.originalUrl}:`, error);
     return res.status(500).json({
       success: false,
       message: "Authentication failed due to an internal error.",

@@ -10,7 +10,6 @@ const ProfilePage = () => {
     const getProfile = async () => {
       try {
         const response = await api.get("/user/getProfile");
-        console.log(response.data?.user.email);
         
         setProfile(response.data?.user);
       } catch (error) {
