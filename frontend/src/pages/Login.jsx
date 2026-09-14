@@ -24,7 +24,7 @@ export default function Login() {
 
     try {
       const response = await fetch(
-        "http://localhost:9000/api/v1/auth/login",
+        "https://mern-stack-auth-final-prod-level.onrender.com/api/v1/auth/login",
         {
           method: "POST",
           headers: {

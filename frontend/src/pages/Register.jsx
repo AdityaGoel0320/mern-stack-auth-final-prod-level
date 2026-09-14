@@ -46,7 +46,7 @@ export default function Register() {
 
     try {
       const response = await fetch(
-        "http://localhost:9000/api/v1/auth/register",
+        "https://mern-stack-auth-final-prod-level.onrender.com/api/v1/auth/register",
         {
           method: "POST",
           headers: {

@@ -1,7 +1,11 @@
 import axios from "axios";
 
+// const api = axios.create({
+//   baseURL: "http://localhost:9000/api/v1",
+//   withCredentials: true, // Crucial for sending/receiving cookies
+// });
 const api = axios.create({
-  baseURL: "http://localhost:9000/api/v1",
+  baseURL: "https://mern-stack-auth-final-prod-level.onrender.com/api/v1",
   withCredentials: true, // Crucial for sending/receiving cookies
 });
 
