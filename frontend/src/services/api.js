@@ -1,10 +1,10 @@
 import axios from "axios";
 
-// const baseUrl = "https://mern-stack-auth-final-prod-level.onrender.com/api/v1";
-const baseUrl = "http://localhost:9000/api/v1";
+const baseUrl = "https://mern-stack-auth-final-prod-level.onrender.com";
+// const baseUrl = "http://localhost:9000";
 
 const api = axios.create({
-  baseURL: baseUrl,
+  baseURL: `${baseUrl}/api/v1`,
   withCredentials: true, // Crucial for sending/receiving cookies
 });
 
