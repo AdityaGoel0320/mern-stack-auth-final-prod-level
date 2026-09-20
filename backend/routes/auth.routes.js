@@ -4,13 +4,8 @@ import { loginController , registerController , refreshTokenController, logoutCo
 
 const router = Router();
 
-router.post("/login", loginController);
-
-
-
 router.post("/register", registerController);
-
-
+router.post("/login", loginController);
 router.post("/refresh-token", refreshTokenController);
 router.post("/logout", logoutController);
 

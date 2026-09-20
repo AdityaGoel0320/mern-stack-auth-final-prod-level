@@ -1,15 +1,17 @@
-import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
+import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-
 import { userAuthenticatedMiddlware } from "./middlewares/userAuthentication.middleware.js";
 import userRoutes from "./routes/user.routes.js";
 import authRoutes from "./routes/auth.routes.js";
-
-dotenv.config();
+import dns from "dns";
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const app = express();
+
+
 
 // CORS (only once)
 app.use(

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import api from "../services/api"; // Same axios instance as Login
 
 export default function Register() {
   const navigate = useNavigate();
@@ -18,17 +19,18 @@ export default function Register() {
   const handleChange = (e) => {
     setError("");
 
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
-  // Register API
+  // Register User
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    // Basic Frontend Validation
+    // Validation
     if (
       !formData.name ||
       !formData.email ||
@@ -42,31 +44,28 @@ export default function Register() {
       return setError("Passwords do not match.");
     }
 
-    setLoading(true);
-
     try {
-      const response = await fetch(
-        "https://mern-stack-auth-final-prod-level.onrender.com/api/v1/auth/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      setLoading(true);
 
-      const data = await response.json();
+      // Only send required fields to backend
+      const response = await api.post("/auth/register", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      });
 
-      if (response.ok) {
-        alert(data.message);
-        navigate("/login");
-      } else {
-        setError(data.message);
-      }
+      alert(response.data.message || "Registration Successful!");
+
+      // Redirect to login page
+      navigate("/login");
     } catch (err) {
       console.error(err);
-      setError("Server Error. Please try again.");
+
+      setError(
+        err.response?.data?.message ||
+          "Registration failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -83,7 +82,7 @@ export default function Register() {
         </h1>
 
         {error && (
-          <div className="rounded-md bg-red-100 p-3 text-sm text-red-600">
+          <div className="rounded-lg bg-red-100 border border-red-300 p-3 text-sm text-red-600">
             {error}
           </div>
         )}
