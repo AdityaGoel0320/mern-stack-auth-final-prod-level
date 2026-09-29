@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const baseUrl = "https://mern-stack-auth-final-prod-level.onrender.com";
-// const baseUrl = "http://localhost:9000";
+// const baseUrl = "https://mern-stack-auth-final-prod-level.onrender.com";
+const baseUrl = "http://localhost:9000";
 
 const api = axios.create({
   baseURL: `${baseUrl}/api/v1`,

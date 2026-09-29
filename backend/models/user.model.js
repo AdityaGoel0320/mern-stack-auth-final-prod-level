@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema(
       minlength: 8,
     },
 
+    avatar: {
+      type: String,
+    },
+
     refreshTokenHash: {
       type: String,
       default: null,

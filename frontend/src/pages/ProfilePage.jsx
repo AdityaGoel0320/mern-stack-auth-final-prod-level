@@ -10,14 +10,14 @@ const ProfilePage = () => {
     const getProfile = async () => {
       try {
         const response = await api.get("/user/getProfile");
-        
+
         setProfile(response.data?.user);
       } catch (error) {
         console.error("Profile error:", error);
         setError(
           error.response?.data?.message ||
-            error.message ||
-            "Failed to fetch profile"
+          error.message ||
+          "Failed to fetch profile"
         );
       } finally {
         setLoading(false);
@@ -64,20 +64,20 @@ const ProfilePage = () => {
       <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
         {/* Profile Header */}
         <div className="flex items-center gap-5 pb-6 border-b border-gray-100">
-          <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center text-3xl font-bold text-blue-600 shadow-inner">
-            {(
-              profile?.name ||
-              profile?.username ||
-              profile?.email ||
-              "U"
-            )
-              .charAt(0)
-              .toUpperCase()}
+          <div className="">
+            {profile.avatar && (
+              <img
+                src={profile.avatar}
+                alt="Avatar"
+                className="w-20 h-20 rounded-full ml-2"
+              />
+            )}
           </div>
 
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
               {profile?.name || profile?.username || "User"}
+
             </h1>
             <p className="text-gray-500 text-sm mt-0.5">
               {profile?.email || "No email provided"}
@@ -90,7 +90,7 @@ const ProfilePage = () => {
           <h3 className="text-xs font-semibold tracking-wider text-gray-400 uppercase">
             Account Details
           </h3>
-          
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
               <span className="block text-xs font-medium text-gray-400">Full Name</span>

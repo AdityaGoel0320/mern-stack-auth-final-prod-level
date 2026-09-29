@@ -12,19 +12,16 @@ import {
   verifyRefreshToken,
 } from "../services/token.service.js";
 
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
+
 
 /* ==========================
    REGISTER CONTROLLER
 ========================== */
 
-const registerController = async (req, res) => {
+ const registerController = async (req, res) => {
   try {
-    const {
-      name,
-      email,
-      password,
-      confirmPassword,
-    } = req.body;
+    const { name, email, password, confirmPassword, avatar } = req.body;
 
     // Basic Validation
     if (!name || !email || !password || !confirmPassword) {
@@ -42,7 +39,7 @@ const registerController = async (req, res) => {
       });
     }
 
-    // Password Length
+    // Password Length Validation
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
@@ -54,10 +51,7 @@ const registerController = async (req, res) => {
     const normalizedEmail = email.toLowerCase().trim();
 
     // Check if email already exists
-    const existingUser = await User.findOne({
-      email: normalizedEmail,
-    });
-
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(409).json({
         success: false,
@@ -65,17 +59,39 @@ const registerController = async (req, res) => {
       });
     }
 
-    // Hash Password
-    const hashedPassword = await bcrypt.hash(
-      password,
-      10
-    );
+    // -----------------------------------------------------------
+    // AVATAR HANDLING
+    // -----------------------------------------------------------
+    // Default avatar URL from req.body (e.g. preset avatar string)
+    let finalAvatarUrl = avatar || undefined;
 
-    // Create User
+    // Resolve local file path from either req.file or req.files
+    const avatarLocalPath =
+      req.file?.path || req.files?.avatar?.[0]?.path;
+
+    if (avatarLocalPath) {
+      const avatarCloudinary = await uploadOnCloudinary(avatarLocalPath);
+
+      if (!avatarCloudinary) {
+        return res.status(400).json({
+          success: false,
+          message: "Failed to upload avatar image to Cloudinary.",
+        });
+      }
+
+      // FIX: Extract string URL instead of passing full object
+      finalAvatarUrl = avatarCloudinary.secure_url || avatarCloudinary.url;
+    }
+
+    // Hash Password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create User Document
     const newUser = await User.create({
       name: name.trim(),
       email: normalizedEmail,
       password: hashedPassword,
+      ...(finalAvatarUrl && { avatar: finalAvatarUrl }), // Uses schema default if undefined
     });
 
     // Success Response
@@ -86,6 +102,7 @@ const registerController = async (req, res) => {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
+        avatar: newUser.avatar,
       },
     });
   } catch (error) {
@@ -93,7 +110,7 @@ const registerController = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Something went wrong.",
+      message: error.message || "Something went wrong.",
     });
   }
 };

@@ -16,7 +16,7 @@ const app = express();
 // CORS (only once)
 app.use(
   cors({
-    origin: ["http://localhost:5173" , "https://mern-stack-auth-final-prod-level.vercel.app"],
+    origin: ["http://localhost:5174" , "https://mern-stack-auth-final-prod-level.vercel.app"],
     credentials: true,
   })
 );
